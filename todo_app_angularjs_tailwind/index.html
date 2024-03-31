@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html ng-app="myApp" ng-controller="myCtrl" ng-init="app_name = 'Todo App'; myTasks = 'active'" ng-cloak>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=7">
+        <meta name="color-scheme" content="{{gTheme}}">
+        <title>{{app_name}}</title>
+        <!-- CSS -->
+        <link rel="stylesheet" href='https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css' />
+        <link rel="stylesheet" href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css'/>
+        <link rel="stylesheet" href='css/styles.css'/>
+        <!-- JS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+        <script src="js/app.js"></script>
+    </head>
+    <body class="bg-gray-700 flex justify-center responsive" style="background-image: url('images/bg.jpg'); background-size: 100% 60%; background-repeat: no-repeat; background-attachment: fixed;" ng-init="loader=false; lOpacity=100">
+        <div ng-hide="loader" class="top left fixed text-black bg-gray-300 z-10 flex justify-center items-center w-full h-full opacity-{{lOpacity}}" style="transition: .7s">
+            <i class="fa fa-spinner fa-pulse fa-2x "></i>
+        </div>
+        <div class="content flex flex-col flex-wrap responsive m-4 h-full">
+            <header class="m-4 text-3xl font-mono font-bold text-white">{{app_name}}</header>
+            <section class="m-4 mb-0 font-bold text-right text-white">
+                Change Theme:
+                <button class="cursor-pointer btn p-3" ng-click="darkTheme()"><i class="fa fa-moon text-white fa-bounce"></i></button>
+                <button class="cursor-pointer btn" ng-click="lightTheme()"><i class="fa fa-sun text-white fa-bounce"></i></button>
+            </section>
+            <form class="m-4 p-4 rounded-lg text-center bg-{{theme.bg}}">
+                <div class="w-full flex flex-row items-center justify-center mb-2">
+                    <input ng-model="task" placeholder="Add to list" class="shadow border rounded-l-full w-full px-3 py-2 text-gray-700 focus:shadow-outline focus:bg-blue-100 placeholder-indigo-300 capitalize font-bold" ng-keydown="status()" ng-blur="escape()">
+                    <input type="submit" ng-click="add()" value="Add" class="px-3 py-2 border-2 bg-blue-900 text-blue-100 cursor-pointer font-bold">
+                </div>
+                <h2 class="text-{{statusColor}}-500 font-bold text-center italic break-all">&nbsp;{{msg}}</h2>
+                <h2 align="center" class="text-{{theme.text}} font-bold font-mono text-2xl mt-4 break-all">&nbsp;{{taskGroup}}</h2>
+            </form>
+            <div class="m-4 p-1 font-bold flex flex-row flex-wrap items-center justify-between bg-{{theme.bg}} text-sm rounded-lg" ng-init="allCheck=false; searchList=false; reload=false;">
+                <div>
+                    Sort:
+                    <select class="p-2 font-bold hover:bg-{{theme.text}} hover:text-{{theme.bg}} focus:bg-{{theme.text}} focus:text-{{theme.bg}}  cursor-pointer" ng-model="sortBy">
+                        <option class="text-yellow-600 font-bold" value="asc">A-Z</option>
+                        <option class="text-yellow-600 font-bold" value="dsc">Z-A</option>
+                        <option class="text-yellow-600 font-bold" value="rnd">Random</option>
+                    </select>
+                    <button type="checkbox" class="p-2 font-bold rounded-lg hover:bg-{{theme.text}} hover:text-{{theme.bg}} focus:bg-{{theme.text}} focus:text-{{theme.bg}} cursor-pointer" ng-click="order()" title="Sort List"> <i class="fa fa-sort"></i> </button>
+                    <span ng-show="reload"><i class="fa fa-rotate fa-spin-pulse"></i></span>
+                </div>
+                <button ng-click="searchList=!searchList" class="font-bold hover:bg-yellow-600 hover:text-black focus:bg-yellow-600 focus:text-black p-2 border-2 border-black rounded-lg font-bold cursor-pointer"><i class="fa fa-magnifying-glass"></i></button>
+                <span ng-show="showCheckBtn">
+                    Check All <input type="checkbox" ng-click="checkAll()" ng-model="checkBtn" ng-checked="allCheck">
+                </span>
+            </div>
+            <form class="m-4 mt-1 p-1 font-bold items-center shadow border rounded-full focus:bg-blue-100 font-sans capitalize bg-{{theme.bg}} flex flex-row items-center justify-between" ng-show="searchList">
+                <span class="text-{{searchColor}}-{{searchThickness}} p-2 font-bold">
+                    <i class="fa fa-magnifying-glass"></i>
+                </span>
+                <span class="w-full">
+                    <input placeholder="Search List" type="search" class="placeholder-{{searchColor}}-{{searchThickness}} font-bold text-{{searchColor}}-{{searchThickness}} font-sans outline-none p-2 w-full rounded-full" ng-model="search" ng-bind="search" ng-blur="search = ''">
+                </span>
+            </form>
+            <div ng-switch="myTasks" ng-init="check=false">
+                <div ng-switch-when="all">
+                    <div ng-repeat="c in tasks.completed | filter : search" class="ml-4 mr-4 p-3 font-bold flex flex-row justify-between bg-{{theme.bg}} border-b-2 border-{{theme.text}}">
+                        <span><input type="checkbox" class="cursor-pointer" checked disabled></span> 
+                        <span class="capitalize break-all w-full ml-3 mr-3 text-center" style="text-decoration-color: crimson; text-decoration-style: double; text-decoration-thickness: 10%;">{{c}}</span> <button class="fa fa-trash btn hover:text-red-700 cursor-pointer" ng-click="delFromCompleted($index)"></button>
+                    </div>
+                    <div ng-repeat="a in tasks.active | filter : search" class="ml-4 mr-4 p-3 font-bold flex flex-row justify-between bg-{{theme.bg}} border-b-2 border-{{theme.text}}">
+                        <span><input type="checkbox" class="cursor-pointer" disabled></span>
+                        <span class="capitalize break-all w-full ml-3 mr-3 text-center">{{a}}</span> <button class="fa fa-trash btn hover:text-red-700 cursor-pointer" ng-click="delFromActive($index)"></button>
+                    </div>
+                </div>
+                <div ng-repeat="a in tasks.active | filter : search" class="mr-4 ml-4 p-3 font-bold flex flex-row justify-between bg-{{theme.bg}} border-b-2 border-{{theme.text}}" ng-switch-when="active">
+                    <span><input type="checkbox" class="cursor-pointer" ng-click="moveToCompleted($index)" ng-checked="check"></span>
+                    <span class="capitalize break-all w-full ml-3 mr-3 text-center">{{a}}</span> <button class="fa fa-trash btn hover:text-red-700 cursor-pointer" ng-click="delFromActive($index)"></button>
+                </div>
+                <div ng-repeat="c in tasks.completed | filter : search" class="ml-4 mr-4 p-3 font-bold flex flex-row justify-between bg-{{theme.bg}} border-b-2 border-{{theme.text}}" ng-switch-when="completed">
+                    <span><input type="checkbox" class="cursor-pointer" ng-click="moveToActive($index)" ng-checked="check"></span> 
+                    <span class="capitalize break-all w-full ml-3 mr-3 text-center" style="text-decoration-color: crimson; text-decoration-style: double; text-decoration-thickness: 10%;">{{c}}</span> <button class="fa fa-trash btn hover:text-red-700 cursor-pointer" ng-click="delFromCompleted($index)"></button>
+                </div>
+            </div>
+            <section ng-init="items=0; disallow=false; ss=''; cBtn=true" class="flex flex-row flex-wrap items-center font-bold xl:justify-between lg:justify-between md:justify-between sm:justify-around m-4 p-3 rounded-lg bg-{{theme.bg}} text-sm">
+                <span class="text-center">{{ items }} <br>task{{ss}} remaining</span>
+                <div class="flex flex-row items-center justify-around mr-3 ml-3">
+                    <button ng-click="all()" class="h-14 w-14 p-3 font-bold hover:bg-{{theme.text}} hover:text-{{theme.bg}} focus:bg-{{theme.text}} focus:text-{{theme.bg}} border-r-2 border-{{theme.text}} rounded-r-lg" ng-disabled="disallow">All</button>
+                    <button ng-click="active()" class="font-bold hover:bg-{{theme.text}} hover:text-{{theme.bg}} focus:bg-{{theme.text}} focus:text-{{theme.bg}} p-3 border-r-2 border-{{theme.text}} rounded-r-lg" ng-disabled="disallow">Active</button>
+                    <button ng-click="completed()" class="font-bold hover:bg-{{theme.text}} hover:text-{{theme.bg}} focus:bg-{{theme.text}} focus:text-{{theme.bg}} p-3 rounded-r-lg" ng-disabled="disallow">Completed</button>
+                </div>
+                <button ng-click="clear()" class="font-bold p-3 border-r-2 rounded-r-lg hover:bg-{{theme.text}} hover:text-{{theme.bg}} focus:bg-{{theme.text}} focus:text-{{theme.bg}}" ng-disabled="cBtn">Clear</button>
+            </section>
+            <footer class="p-3 m-4 text-center text-white font-bold tracking-wide">
+                Created By: Ronaldo Excellent {RX7} <br>
+                &copy; {{year}}.
+            </footer>
+        </div>
+    </body>
+</html>
